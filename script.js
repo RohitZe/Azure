@@ -1,250 +1,316 @@
-/* ---------- Settings ---------- */
-const CURRENCY = "₹"; // change to "$", "€", etc.
+/* ============================================================
+   Pacer – shoe site
+   Data, shoe drawing, hero colour picker, filters, cart, form
+   ============================================================ */
 
 /* ---------- Data ---------- */
-const colorways = {
-  tide:  { name: "Tide",  bg: "#d3e6f7", text: "#0f2742", upper: "#2e6db4", accent: "#ffffff", sole: "#ffffff", outsole: "#1b1f2a" },
-  ember: { name: "Ember", bg: "#ffd9c2", text: "#3a1204", upper: "#e8571f", accent: "#1b1b1f", sole: "#ffffff", outsole: "#1b1b1f" },
-  moss:  { name: "Moss",  bg: "#d6e8cf", text: "#12301b", upper: "#3f7d4e", accent: "#f2f2f2", sole: "#f2f2f2", outsole: "#12301b" },
-  night: { name: "Night", bg: "#272a38", text: "#f4f4f8", upper: "#e9e9ef", accent: "#f2b705", sole: "#f2b705", outsole: "#101218" }
-};
-
-const products = [
-  { id: 1, name: "Tread One",    type: "Everyday", price: 5499, color: "tide",  note: "The all-day pair." },
-  { id: 2, name: "Tread Sprint", type: "Running",  price: 6999, color: "ember", note: "Springy foam for 5–10 km runs." },
-  { id: 3, name: "Tread Ridge",  type: "Trail",    price: 7499, color: "moss",  note: "Grippy outsole for dirt and wet rock." },
-  { id: 4, name: "Tread Dusk",   type: "Everyday", price: 5999, color: "night", note: "Dark upper, bright details." },
-  { id: 5, name: "Tread Sprint Lite", type: "Running", price: 6499, color: "tide", note: "Lighter build for race days." },
-  { id: 6, name: "Tread Camp",   type: "Trail",    price: 7999, color: "ember", note: "Reinforced toe and heel." },
-  { id: 7, name: "Tread Loop",   type: "Everyday", price: 5299, color: "moss",  note: "Slip-resistant sole for wet floors." },
-  { id: 8, name: "Tread Tempo",  type: "Running",  price: 7199, color: "night", note: "Stable ride for longer distances." }
+const PRODUCTS = [
+  { id: "aero",   name: "Aero Runner",   type: "Running", price: 89,  upper: "#2f49f5", accent: "#ffd84a", tint: "#dce3ff" },
+  { id: "tempo",  name: "Tempo Lite",    type: "Running", price: 99,  upper: "#ff6b5b", accent: "#16224a", tint: "#ffe0db" },
+  { id: "sprint", name: "Sprint Knit",   type: "Running", price: 109, upper: "#1fa37a", accent: "#ffffff", tint: "#d5f2e8" },
+  { id: "court",  name: "Court Classic", type: "Casual",  price: 75,  upper: "#f4f1e8", accent: "#2f49f5", tint: "#e3e8f4" },
+  { id: "daily",  name: "Daily Slip",    type: "Casual",  price: 65,  upper: "#ffd84a", accent: "#16224a", tint: "#fff2bf" },
+  { id: "harbor", name: "Harbor Low",    type: "Casual",  price: 82,  upper: "#16224a", accent: "#ff6b5b", tint: "#d9ddea" },
+  { id: "ridge",  name: "Ridge Boot",    type: "Boots",   price: 139, upper: "#8a5a3c", accent: "#f4e3c8", tint: "#ebd9c8", high: true },
+  { id: "trail",  name: "Trail Mid",     type: "Boots",   price: 129, upper: "#5c6b3a", accent: "#ffd84a", tint: "#e1e7cf", high: true },
 ];
 
-const SIZES = [6, 7, 8, 9, 10, 11];
+const HERO_SHOE = { name: "Aero Runner", price: 89 };
+const COLOURWAYS = [
+  { name: "Cobalt", upper: "#2f49f5", accent: "#ffd84a", tint: "#dce3ff" },
+  { name: "Coral",  upper: "#ff6b5b", accent: "#16224a", tint: "#ffe0db" },
+  { name: "Mint",   upper: "#1fa37a", accent: "#ffffff", tint: "#d5f2e8" },
+  { name: "Butter", upper: "#ffd84a", accent: "#16224a", tint: "#fff2bf" },
+  { name: "Ink",    upper: "#16224a", accent: "#ff6b5b", tint: "#d9ddea" },
+];
 
 /* ---------- Helpers ---------- */
 const $ = (sel, root = document) => root.querySelector(sel);
-const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
-const money = n => CURRENCY + n.toLocaleString("en-IN");
+const money = (n) => "$" + n;
 
-function applyShoeColors(el, c) {
-  el.style.setProperty("--upper", c.upper);
-  el.style.setProperty("--accent", c.accent);
-  el.style.setProperty("--sole", c.sole);
-  el.style.setProperty("--outsole", c.outsole);
-}
+/* Draws a side-on sneaker (or boot) as inline SVG, coloured with CSS variables */
+function shoeSVG({ upper, accent, high = false, label = "" }) {
+  const body = high
+    ? "M50 168 C40 120 42 50 56 16 L138 16 C140 44 160 68 196 80 C250 100 302 112 342 126 C372 136 388 150 388 168 Z"
+    : "M50 168 C38 120 44 76 62 54 C72 42 92 46 106 58 C130 78 152 72 170 62 L192 54 C212 90 252 110 302 122 C352 134 386 146 388 168 Z";
+  const heel = high
+    ? "M50 168 C40 120 42 50 56 16 L82 16 C72 60 74 130 90 168 Z"
+    : "M50 168 C38 120 44 76 62 54 C68 48 76 46 84 48 C74 80 76 130 90 168 Z";
+  const toe = high
+    ? "M330 122 C364 132 386 146 388 168 L322 168 C328 152 330 138 330 122 Z"
+    : "M302 122 C352 134 386 146 388 168 L300 168 C308 150 308 136 302 122 Z";
+  const tongue = high ? "" : '<path class="u" d="M170 62 L192 54 L202 38 C190 34 176 44 170 62 Z"/>';
+  const straps = high
+    ? '<path class="lace" d="M62 40 L126 40"/><path class="lace" d="M64 64 L134 64"/>'
+    : "";
 
-function shoeSVG(c, label) {
-  return `<svg viewBox="0 0 410 190" role="img" aria-label="${label}" style="--upper:${c.upper};--accent:${c.accent};--sole:${c.sole};--outsole:${c.outsole}"><use href="#shoe"/></svg>`;
-}
-
-/* ---------- Toast ---------- */
-let toastTimer;
-function toast(msg) {
-  const t = $("#toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+  return `
+<svg class="shoe" viewBox="0 0 410 230" role="img" aria-label="${label}" style="--u:${upper};--a:${accent}">
+  <path class="u" d="${body}"/>
+  <path class="shade" d="${heel}"/>
+  <path class="shade" d="${toe}"/>
+  ${tongue}
+  ${straps}
+  <path class="lace" d="M208 64 L194 86"/>
+  <path class="lace" d="M236 81 L222 103"/>
+  <path class="lace" d="M264 98 L250 120"/>
+  <path class="lace" d="M291 115 L277 137"/>
+  <path class="stripe" d="M104 146 C160 134 226 140 286 150"/>
+  <path class="sole" d="M18 184 C18 174 30 168 46 168 L360 168 C384 168 394 180 392 192 C390 204 374 212 352 212 L52 212 C30 212 18 204 18 184 Z"/>
+  <path class="collar" d="M28 192 L382 192"/>
+</svg>`;
 }
 
 /* ---------- Cart state ---------- */
 let cart = [];
-try { cart = JSON.parse(localStorage.getItem("tread-cart")) || []; } catch (e) { cart = []; }
+try {
+  cart = JSON.parse(localStorage.getItem("pacer-cart")) || [];
+} catch (e) {
+  cart = [];
+}
 
 function saveCart() {
-  try { localStorage.setItem("tread-cart", JSON.stringify(cart)); } catch (e) { /* storage unavailable */ }
+  try { localStorage.setItem("pacer-cart", JSON.stringify(cart)); } catch (e) { /* storage unavailable */ }
 }
 
-function addToCart(productId, size) {
-  const found = cart.find(i => i.id === productId && i.size === size);
-  if (found) found.qty += 1;
-  else cart.push({ id: productId, size, qty: 1 });
-  saveCart();
-  renderCart(true);
-  const p = products.find(p => p.id === productId);
-  toast(`${p.name} (UK ${size}) added to cart`);
-}
-
-function changeQty(index, delta) {
-  cart[index].qty += delta;
-  if (cart[index].qty <= 0) cart.splice(index, 1);
+function addToCart(item) {
+  const existing = cart.find((i) => i.key === item.key);
+  if (existing) existing.qty += 1;
+  else cart.push({ ...item, qty: 1 });
   saveCart();
   renderCart();
-}
-
-function removeItem(index) {
-  cart.splice(index, 1);
-  saveCart();
-  renderCart();
-}
-
-function renderCart(bump = false) {
-  const list = $("#cartItems");
-  const count = cart.reduce((n, i) => n + i.qty, 0);
-  const total = cart.reduce((sum, i) => sum + i.qty * products.find(p => p.id === i.id).price, 0);
-
-  list.innerHTML = cart.map((item, idx) => {
-    const p = products.find(p => p.id === item.id);
-    const c = colorways[p.color];
-    return `
-      <li class="cart-item" style="--bg:${c.bg}">
-        <div class="cart-thumb">${shoeSVG(c, p.name)}</div>
-        <div>
-          <h3>${p.name}</h3>
-          <p class="meta">${c.name} · UK ${item.size}</p>
-          <div class="cart-row">
-            <div class="qty">
-              <button data-act="dec" data-i="${idx}" aria-label="Decrease quantity">−</button>
-              <span>${item.qty}</span>
-              <button data-act="inc" data-i="${idx}" aria-label="Increase quantity">+</button>
-            </div>
-            <strong>${money(p.price * item.qty)}</strong>
-          </div>
-          <button class="remove" data-act="rm" data-i="${idx}">Remove</button>
-        </div>
-      </li>`;
-  }).join("");
-
-  $("#cartEmpty").hidden = cart.length > 0;
-  $(".drawer-foot").hidden = cart.length === 0;
-  $("#cartTotal").textContent = money(total);
-
   const badge = $("#cartCount");
-  badge.textContent = count;
-  if (bump) {
-    badge.classList.remove("bump");
-    void badge.offsetWidth; // restart animation
-    badge.classList.add("bump");
-  }
+  badge.classList.remove("bump");
+  void badge.offsetWidth; // restart animation
+  badge.classList.add("bump");
 }
 
-$("#cartItems").addEventListener("click", e => {
+function changeQty(key, delta) {
+  const item = cart.find((i) => i.key === key);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter((i) => i.key !== key);
+  saveCart();
+  renderCart();
+}
+
+function removeItem(key) {
+  cart = cart.filter((i) => i.key !== key);
+  saveCart();
+  renderCart();
+}
+
+function renderCart() {
+  const list = $("#cartList");
+  const count = cart.reduce((n, i) => n + i.qty, 0);
+  const total = cart.reduce((n, i) => n + i.qty * i.price, 0);
+
+  $("#cartCount").textContent = count;
+  $("#cartTotal").textContent = money(total);
+  $("#cartEmpty").hidden = cart.length > 0;
+  $("#openCart").setAttribute("aria-label", `Open cart, ${count} item${count === 1 ? "" : "s"}`);
+
+  list.innerHTML = cart
+    .map(
+      (i) => `
+    <li class="cart-item" data-key="${i.key}">
+      <div class="cart-thumb" style="--tint:${i.tint}">
+        ${shoeSVG({ upper: i.upper, accent: i.accent, high: i.high, label: "" })}
+      </div>
+      <div>
+        <h3>${i.name}</h3>
+        <p class="meta">${i.variant}</p>
+        <div class="qty">
+          <button type="button" data-act="dec" aria-label="Remove one ${i.name}">&minus;</button>
+          <span aria-live="polite">${i.qty}</span>
+          <button type="button" data-act="inc" aria-label="Add one more ${i.name}">+</button>
+        </div>
+      </div>
+      <div class="cart-side">
+        <span>${money(i.price * i.qty)}</span>
+        <button type="button" class="remove" data-act="remove">Remove</button>
+      </div>
+    </li>`
+    )
+    .join("");
+}
+
+$("#cartList").addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-act]");
   if (!btn) return;
-  const i = Number(btn.dataset.i);
-  if (btn.dataset.act === "inc") changeQty(i, 1);
-  if (btn.dataset.act === "dec") changeQty(i, -1);
-  if (btn.dataset.act === "rm") removeItem(i);
+  const key = btn.closest(".cart-item").dataset.key;
+  const act = btn.dataset.act;
+  if (act === "inc") changeQty(key, 1);
+  if (act === "dec") changeQty(key, -1);
+  if (act === "remove") removeItem(key);
 });
 
-/* ---------- Drawer ---------- */
+/* ---------- Cart drawer ---------- */
 const drawer = $("#drawer");
-const scrim = $("#scrim");
-let lastFocus = null;
+const overlay = $("#overlay");
+const openBtn = $("#openCart");
 
 function openCart() {
-  lastFocus = document.activeElement;
+  overlay.hidden = false;
   drawer.classList.add("open");
   drawer.setAttribute("aria-hidden", "false");
-  scrim.hidden = false;
-  $("#cartClose").focus();
+  document.body.style.overflow = "hidden";
+  $("#closeCart").focus();
 }
+
 function closeCart() {
+  overlay.hidden = true;
   drawer.classList.remove("open");
   drawer.setAttribute("aria-hidden", "true");
-  scrim.hidden = true;
-  if (lastFocus) lastFocus.focus();
+  document.body.style.overflow = "";
+  $("#checkoutMsg").textContent = "";
+  openBtn.focus();
 }
-$("#cartOpen").addEventListener("click", openCart);
-$("#cartClose").addEventListener("click", closeCart);
-scrim.addEventListener("click", closeCart);
-document.addEventListener("keydown", e => { if (e.key === "Escape" && drawer.classList.contains("open")) closeCart(); });
+
+openBtn.addEventListener("click", openCart);
+$("#closeCart").addEventListener("click", closeCart);
+overlay.addEventListener("click", closeCart);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && drawer.classList.contains("open")) closeCart();
+});
 
 $("#checkout").addEventListener("click", () => {
-  toast("Checkout isn't connected yet. Hook this button up to your payment provider.");
+  const msg = $("#checkoutMsg");
+  msg.classList.remove("error");
+  if (cart.length === 0) {
+    msg.classList.add("error");
+    msg.textContent = "Add a pair to your cart before checking out.";
+    return;
+  }
+  msg.textContent = "This is a demo store, so no order was placed.";
 });
 
-/* ---------- Hero colour switcher ---------- */
-const hero = $("#hero");
+/* ---------- Hero colour picker ---------- */
 const heroShoe = $("#heroShoe");
-const featured = products[0];
-let heroColor = "tide";
+const hero = $("#hero");
+let heroColour = COLOURWAYS[0];
 
-function setHeroColor(key, animate = true) {
-  heroColor = key;
-  const c = colorways[key];
-  hero.style.setProperty("--bg", c.bg);
-  hero.style.setProperty("--text", c.text);
-  applyShoeColors(heroShoe, c);
-  $("#heroColor").textContent = c.name;
-  $$(".swatch").forEach(s => s.setAttribute("aria-checked", String(s.dataset.color === key)));
-  if (animate) {
-    heroShoe.classList.remove("swap");
-    void heroShoe.getBoundingClientRect();
-    heroShoe.classList.add("swap");
-  }
+heroShoe.innerHTML = shoeSVG({
+  upper: heroColour.upper,
+  accent: heroColour.accent,
+  label: `${HERO_SHOE.name} sneaker in ${heroColour.name}`,
+});
+const heroSvg = $(".shoe", heroShoe);
+
+function setHeroColour(cw) {
+  heroColour = cw;
+  heroSvg.style.setProperty("--u", cw.upper);
+  heroSvg.style.setProperty("--a", cw.accent);
+  heroSvg.setAttribute("aria-label", `${HERO_SHOE.name} sneaker in ${cw.name}`);
+  hero.style.setProperty("--hero-tint", cw.tint);
+  $("#heroLabel").innerHTML = `<strong>${HERO_SHOE.name}</strong> in ${cw.name}, ${money(HERO_SHOE.price)}`;
+  document.querySelectorAll(".swatch").forEach((b) => {
+    b.setAttribute("aria-pressed", String(b.dataset.name === cw.name));
+  });
 }
 
-$(".swatches").innerHTML = Object.entries(colorways).map(([key, c]) =>
-  `<button class="swatch" role="radio" aria-checked="false" data-color="${key}" aria-label="${c.name}" title="${c.name}" style="--sw:${c.upper}"></button>`
+$("#swatches").innerHTML = COLOURWAYS.map(
+  (cw) =>
+    `<button type="button" class="swatch" data-name="${cw.name}" aria-label="${cw.name}" aria-pressed="false" style="background:${cw.upper}"></button>`
 ).join("");
 
-$(".swatches").addEventListener("click", e => {
-  const s = e.target.closest(".swatch");
-  if (s) setHeroColor(s.dataset.color);
+$("#swatches").addEventListener("click", (e) => {
+  const btn = e.target.closest(".swatch");
+  if (!btn) return;
+  setHeroColour(COLOURWAYS.find((c) => c.name === btn.dataset.name));
 });
 
-$("#heroName").textContent = featured.name;
-$("#heroPrice").textContent = money(featured.price);
-$("#heroAdd").addEventListener("click", () => addToCart(featured.id, 8));
-setHeroColor("tide", false);
+$("#heroAdd").addEventListener("click", () => {
+  addToCart({
+    key: `aero-${heroColour.name.toLowerCase()}`,
+    name: HERO_SHOE.name,
+    variant: heroColour.name,
+    price: HERO_SHOE.price,
+    upper: heroColour.upper,
+    accent: heroColour.accent,
+    tint: heroColour.tint,
+  });
+  openCart();
+});
+
+setHeroColour(heroColour);
 
 /* ---------- Product grid + filters ---------- */
-function renderGrid(filter = "all") {
-  const items = products.filter(p => filter === "all" || p.type === filter);
-  $("#empty").hidden = items.length > 0;
-  $("#grid").innerHTML = items.map(p => {
-    const c = colorways[p.color];
-    return `
-      <article class="card">
-        <div class="card-img" style="--bg:${c.bg}">${shoeSVG(c, `${p.name} in ${c.name}`)}</div>
-        <div class="card-body">
-          <div class="card-top"><h3>${p.name}</h3><span class="price">${money(p.price)}</span></div>
-          <p class="meta">${p.type} · ${c.name}</p>
-          <p>${p.note}</p>
-          <div class="card-actions">
-            <select aria-label="Size for ${p.name}" data-size-for="${p.id}">
-              ${SIZES.map(s => `<option value="${s}" ${s === 8 ? "selected" : ""}>UK ${s}</option>`).join("")}
-            </select>
-            <button class="btn" data-add="${p.id}">Add to cart</button>
-          </div>
+const grid = $("#grid");
+let activeFilter = "All";
+
+function renderGrid() {
+  const shown = PRODUCTS.filter((p) => activeFilter === "All" || p.type === activeFilter);
+  $("#resultCount").textContent = `Showing ${shown.length} ${shown.length === 1 ? "pair" : "pairs"}`;
+
+  grid.innerHTML = shown
+    .map(
+      (p) => `
+    <article class="tile">
+      <div class="tile-art" style="--tint:${p.tint}">
+        ${shoeSVG({ upper: p.upper, accent: p.accent, high: p.high, label: `${p.name}, ${p.type.toLowerCase()} shoe` })}
+      </div>
+      <div class="tile-info">
+        <div class="tile-row">
+          <h3>${p.name}</h3>
+          <span class="price">${money(p.price)}</span>
         </div>
-      </article>`;
-  }).join("");
+        <p class="tile-type">${p.type}</p>
+        <button type="button" class="add-btn" data-id="${p.id}">Add to cart</button>
+      </div>
+    </article>`
+    )
+    .join("");
 }
 
-$("#grid").addEventListener("click", e => {
-  const btn = e.target.closest("[data-add]");
-  if (!btn) return;
-  const id = Number(btn.dataset.add);
-  const size = Number($(`[data-size-for="${id}"]`).value);
-  addToCart(id, size);
+$("#filters").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  activeFilter = chip.dataset.filter;
+  document.querySelectorAll(".chip").forEach((c) => {
+    c.setAttribute("aria-pressed", String(c === chip));
+  });
+  renderGrid();
 });
 
-$$(".chip").forEach(chip => chip.addEventListener("click", () => {
-  $$(".chip").forEach(c => { c.classList.remove("is-active"); c.setAttribute("aria-pressed", "false"); });
-  chip.classList.add("is-active");
-  chip.setAttribute("aria-pressed", "true");
-  renderGrid(chip.dataset.filter);
-}));
+grid.addEventListener("click", (e) => {
+  const btn = e.target.closest(".add-btn");
+  if (!btn) return;
+  const p = PRODUCTS.find((x) => x.id === btn.dataset.id);
+  addToCart({
+    key: p.id,
+    name: p.name,
+    variant: p.type,
+    price: p.price,
+    upper: p.upper,
+    accent: p.accent,
+    tint: p.tint,
+    high: !!p.high,
+  });
+  btn.textContent = "Added to cart";
+  btn.classList.add("added");
+  setTimeout(() => {
+    btn.textContent = "Add to cart";
+    btn.classList.remove("added");
+  }, 1200);
+});
 
-/* ---------- Newsletter ---------- */
-$("#joinForm").addEventListener("submit", e => {
+/* ---------- Newsletter form ---------- */
+$("#joinForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const input = $("#email");
   const msg = $("#formMsg");
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+
+  msg.classList.toggle("error", !valid);
+  input.setAttribute("aria-invalid", String(!valid));
+
   if (!valid) {
-    input.setAttribute("aria-invalid", "true");
-    msg.textContent = "Enter a valid email address, like you@example.com.";
-    msg.className = "form-msg err";
+    msg.textContent = "Enter an email address like name@example.com.";
     input.focus();
     return;
   }
-  input.removeAttribute("aria-invalid");
-  msg.textContent = "You're on the list. Watch your inbox for the next drop.";
-  msg.className = "form-msg ok";
+  msg.textContent = "Subscribed. Check your inbox for a welcome note.";
   input.value = "";
 });
 
